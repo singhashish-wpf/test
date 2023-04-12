@@ -1,0 +1,25 @@
+name: Merge PR to CTP
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  merge-to-ctp:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Merge PR into CTP
+        run: |
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
+          git checkout ctp
+          git merge pr-branch --no-ff --no-edit
+          git push origin ctp
+
+      - name: Clean up PR branch
+        run: |
+          git checkout main
+          git branch -D pr-branch
