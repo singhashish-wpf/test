@@ -1,35 +1,35 @@
-name: Copy PR changes to branch
+name: Merge PR changes to branch
 
 on:
-  pull_request:
-    types: [opened, synchronize]
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+    branches:
+      - main
 
 jobs:
-  copy-changes:
+  merge-changes:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout target branch
         uses: actions/checkout@v2
         with:
-          ref: ctp
+          ref: nctp
 
       - name: Create new branch
-        run: git checkout -b tempctp
+        run: |
+          git checkout -b nctp
+          git push -u origin nctp
 
       - name: Fetch PR changes
-        uses: actions/github-script@v4
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const core = require('@actions/core');
-            const prNumber = context.payload.pull_request.number;
-            const prBranch = context.payload.pull_request.head.ref;
-            const remoteName = context.payload.repository.owner.login;
-            await exec(`git fetch ${remoteName} pull/${prNumber}/head:${prBranch}`);
+        run: |
+          git fetch origin pull/${{ github.event.number }}/head:pr
+          git checkout pr
 
       - name: Merge changes into new branch
-        run: git merge FETCH_HEAD
+        run: |
+          git checkout nctp
+          git merge pr --no-commit
 
       - name: Push changes to new branch
-        run: git push origin ctp
+        run: git push origin nctp
