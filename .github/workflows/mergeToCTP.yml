@@ -22,6 +22,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const core = require('@actions/core');
             const prNumber = context.payload.pull_request.number;
             const prBranch = context.payload.pull_request.head.ref;
             const remoteName = context.payload.repository.owner.login;
